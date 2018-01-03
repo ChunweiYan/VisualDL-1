@@ -1,8 +1,14 @@
 #!/bin/bash
 set -ex
 
-export PYTHONPATH="$(pwd)/..:/home/superjom/project/VisualDL/build/visualdl/logic:/home/superjom/project/VisualDL/visualdl/python"
-export FLASK_APP=visual_dl.py
-export FLASK_DEBUG=1
+WORKSPACE=$(pwd)/../..
+BUILD_ROOT=$WORKSPACE/build
 
-python visual_dl.py --logdir ./tmp/mock --host 172.23.233.68 --port 8043
+log_dir=$1
+ip=$2
+
+export PYTHONPATH="$(pwd)/..:${BUILD_ROOT}/visualdl/logic:${WORKSPACE}/visualdl/python"
+export FLASK_APP=visual_dl.py
+export FLASK_DEBUG=0
+
+python visual_dl.py --logdir $log_dir --host $ip --port 8090
