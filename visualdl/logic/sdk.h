@@ -8,19 +8,25 @@ namespace visualdl {
 
 const static std::string kDefaultMode{"default"};
 
-class Writer {
+class LogWriter {
 public:
-  Writer(const std::string& dir, int sync_cycle) {
+  LogWriter(const std::string& dir, int sync_cycle) {
     storage_.SetDir(dir);
     storage_.meta.cycle = sync_cycle;
   }
-  Writer(const Writer& other) {
-    storage_ = other.storage_;
+
+  LogWriter(const LogWriter& other) {
     mode_ = other.mode_;
+    storage_ = other.storage_;
   }
 
-  Writer AsMode(const std::string& mode) {
-    Writer writer = *this;
+  void SetMode(const std::string& mode) {
+    mode_ = mode;
+    storage_.AddMode(mode);
+  }
+
+  LogWriter AsMode(const std::string& mode) {
+    LogWriter writer = *this;
     storage_.AddMode(mode);
     writer.mode_ = mode;
     return writer;
@@ -43,11 +49,13 @@ private:
   std::string mode_{kDefaultMode};
 };
 
-class Reader {
+class LogReader {
 public:
-  Reader(const std::string& dir) : reader_(dir) {}
+  LogReader(const std::string& dir) : reader_(dir) {}
 
-  Reader AsMode(const std::string& mode) {
+  void SetMode(const std::string& mode) { mode_ = mode; }
+
+  LogReader AsMode(const std::string& mode) {
     auto tmp = *this;
     tmp.mode_ = mode;
     return tmp;
@@ -122,7 +130,10 @@ struct Scalar {
   void AddRecord(int id, T value) {
     auto record = tablet_.AddRecord();
     record.SetId(id);
-    auto entry = record.AddData<T>();
+
+    time_t time = std::time(nullptr);
+    record.SetTimeStamp(time);
+    auto entry = record.template AddData<T>();
     entry.Set(value);
   }
 

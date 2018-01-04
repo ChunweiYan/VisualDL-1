@@ -10,7 +10,7 @@ template <typename T>
 std::vector<T> ScalarReader<T>::records() const {
   std::vector<T> res;
   for (int i = 0; i < reader_.total_records(); i++) {
-    res.push_back(reader_.record(i).data<T>(0).Get());
+    res.push_back(reader_.record(i).template data<T>(0).Get());
   }
   return res;
 }
@@ -139,8 +139,8 @@ void Image::SetSample(int index,
 std::string ImageReader::caption() {
   CHECK_EQ(reader_.captions().size(), 1);
   auto caption = reader_.captions().front();
-  if (Reader::TagMatchMode(caption, mode_)) {
-    return Reader::GenReadableTag(mode_, caption);
+  if (LogReader::TagMatchMode(caption, mode_)) {
+    return LogReader::GenReadableTag(mode_, caption);
   }
   string::TagDecode(caption);
   return caption;
