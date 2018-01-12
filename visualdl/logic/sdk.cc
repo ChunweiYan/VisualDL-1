@@ -129,36 +129,31 @@ void Image::SetSample(int index,
     target_width = target_height / scale;
   }
 
-  std::vector<float> target;
+  Uint8Image image(new_shape[2], width * height);
+  NormalizeImage(&image, &data[0], target_width * target_height, new_shape[2]);
+
+  auto entry = step_.MutableData<std::vector<byte_t>>(index);
   if (width != target_width) {
-    RescaleImage(data.data(),
+    std::vector<uint8_t> target;
+    RescaleImage(image.data(),
                  &target,
                  width,
                  height,
                  new_shape[2],
                  target_width,
                  target_height);
-  }
-
-  // Uint8Image image(new_shape[2], new_shape[0] * new_shape[1]);
-  Uint8Image image(new_shape[2], target_width * target_height);
-  if (target.empty()) {
-    NormalizeImage(
-        &image, &data[0], target_width * target_height, new_shape[2]);
+    entry.SetRaw(std::string(target.begin(), target.end()));
   } else {
-    NormalizeImage(
-        &image, &target[0], target_height * target_width, new_shape[2]);
+    entry.SetRaw(
+        std::string(image.data(), image.data() + image.rows() * image.cols()));
   }
-
-  auto entry = step_.MutableData<std::vector<byte_t>>(index);
-  entry.SetRaw(
-      std::string(image.data(), image.data() + image.rows() * image.cols()));
 
   static_assert(
       !is_same_type<value_t, shape_t>::value,
       "value_t should not use int64_t field, this type is used to store shape");
 
   // set meta.
+  new_shape[0] = target_width, new_shape[1] = target_height;
   entry.SetMulti(new_shape);
 }
 

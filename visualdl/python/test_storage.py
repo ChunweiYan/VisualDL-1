@@ -74,7 +74,7 @@ class StorageTest(unittest.TestCase):
         '''
         print 'check image'
         tag = "layer1/check/image1"
-        image_writer = self.writer.image(tag, 10, 1, 10, 10)
+        image_writer = self.writer.image(tag, 10, 1, 200, 200)
 
         image = Image.open("./dog.jpg")
         shape = [image.size[1], image.size[0], 3]
@@ -99,6 +99,7 @@ class StorageTest(unittest.TestCase):
             data = np.array(data, dtype='uint8').reshape(PIL_image_shape)
             print 'origin', origin_data.flatten()
             print 'data', data.flatten()
+            print 'shape', shape
             image = Image.fromarray(data.reshape(shape))
             # manully check the image and found that nothing wrong with the image storage.
             image.show()

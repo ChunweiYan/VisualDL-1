@@ -17,11 +17,61 @@ using ImageDT =
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 using Uint8Image = ImageDT<uint8_t>;
 
+/**
+ * Bilinear resize grayscale image.
+ * pixels is an array of size w * h.
+ * Target dimension is w2 * h2.
+ * w2 * h2 cannot be zero.
+ *
+ * @param pixels Image pixels.
+ * @param w Image width.
+ * @param h Image height.
+ * @param w2 New width.
+ * @param h2 New height.
+ * @return New array with size w2 * h2.
+ */
+void ResizeBilinearGray(const uint8_t* pixels,
+                        int w,
+                        int h,
+                        int w2,
+                        int h2,
+                        std::vector<uint8_t>& temp) {
+  LOG(INFO) << "scaling image from " << w << " " << h << " to " << w2 << " "
+            << h2;
+  int A, B, C, D, x, y, index, gray;
+  float x_ratio = ((float)(w - 1)) / w2;
+  float y_ratio = ((float)(h - 1)) / h2;
+  float x_diff, y_diff, ya, yb;
+  int offset = 0;
+  for (int i = 0; i < h2; i++) {
+    for (int j = 0; j < w2; j++) {
+      x = (int)(x_ratio * j);
+      y = (int)(y_ratio * i);
+      x_diff = (x_ratio * j) - x;
+      y_diff = (y_ratio * i) - y;
+      index = y * w + x;
+
+      // range is 0 to 255 thus bitwise AND with 0xff
+      A = pixels[index] & 0xff;
+      B = pixels[index + 1] & 0xff;
+      C = pixels[index + w] & 0xff;
+      D = pixels[index + w + 1] & 0xff;
+
+      // Y = A(1-w)(1-h) + B(w)(1-h) + C(h)(1-w) + Dwh
+      gray =
+          (int)(A * (1 - x_diff) * (1 - y_diff) + B * (x_diff) * (1 - y_diff) +
+                C * (y_diff) * (1 - x_diff) + D * (x_diff * y_diff));
+
+      temp[offset++] = gray;
+    }
+  }
+}
+
 /*
  * Rescale image's size.
  */
-static void RescaleImage(const float* source,
-                         std::vector<float>* target,
+static void RescaleImage(const uint8_t* source,
+                         std::vector<uint8_t>* target,
                          int width,
                          int height,
                          int depth,
@@ -29,20 +79,23 @@ static void RescaleImage(const float* source,
                          int target_height) {
   CHECK_LE(target_width, 600) << "too large width to rescale image";
   CHECK_LE(target_height, 800) << "too large height to rescale image";
-  target->resize(target_width * target_height);
+  target->resize(target_width * target_height * depth);
 
-  float width_scale = (float)target_width / width;
-  float height_scale = (float)target_height / height;
+  float width_scale = (float)width / target_width;
+  float height_scale = (float)height / target_height;
+
+  LOG(INFO) << "width scale: " << width_scale;
+  LOG(INFO) << "height scale: " << height_scale;
+  LOG(INFO) << "target_width: " << target_width;
+  LOG(INFO) << "target_height: " << target_height;
+  LOG(INFO) << "sid size:" << width * height * depth;
+  LOG(INFO) << "tid size:" << target_width * target_height * depth;
+  LOG(INFO) << "depth: " << depth;
+
+  std::vector<uint8_t> temp(target_width * target_height);
   for (int cn = 0; cn < depth; cn++) {
-    for (int x = 0; x < target_width; x++) {
-      for (int y = 0; y < target_height; y++) {
-        int sx = x * width_scale;
-        int sy = y * height_scale;
-        int sid = cn * width * height + sx * height + sy;
-        int tid = cn * target_width * target_height + x * target_height + y;
-        target->at(tid) = source[sid];
-      }
-    }
+    const uint8_t* image = source + width * height * cn;
+    ResizeBilinearGray(image, width, height, target_width, target_height, temp);
   }
 }
 
