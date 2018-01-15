@@ -1,4 +1,4 @@
-# <img src="https://github.com/PaddlePaddle/VisualDL/blob/develop/frontend/src/common/component/visualdl-logo.png?raw=true"/>
+# Visual DL
 
 ### How to install
 ```
