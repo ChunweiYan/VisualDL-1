@@ -33,4 +33,5 @@ else()
   add_dependencies(core pybind python im entry tablet storage sdk protobuf eigen3)
   target_link_libraries(core PRIVATE pybind entry python im tablet storage sdk protobuf ${OPTIONAL_LINK_FLAGS})
 endif()
-set_target_properties(core PROPERTIES PREFIX "" SUFFIX ".so")
+set_target_properties(core PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+                                      SUFFIX "${VS_PYTHON_SUFFIX}")

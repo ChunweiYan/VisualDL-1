@@ -5,6 +5,9 @@ TOP_DIR=$(pwd)
 FRONTEND_DIR=$TOP_DIR/frontend
 BACKEND_DIR=$TOP_DIR/visualdl
 BUILD_DIR=$TOP_DIR/build
+# bin should be absolute path
+PYTHON_BIN=/home/chunwei/project/VisualDL/pyenv/bin/python
+PYTHON_CONFIG="${PYTHON_BIN}-config"
 
 mkdir -p $BUILD_DIR
 
@@ -36,7 +39,11 @@ build_frontend_fake() {
 
 build_backend() {
     cd $BUILD_DIR
-    cmake .. ${PYTHON_FLAGS}
+    local config=/usr/bin/python3-config
+    local suffix=$("$config" --extension-suffix)
+    cmake .. -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DVS_PYTHON_SUFFIX=$suffix
+    #-DPYTHON_INCLUDE_DIR=/usr/include/python3.5m \
+    #-DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.5m.so 
     make -j2
 }
 

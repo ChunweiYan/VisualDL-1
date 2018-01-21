@@ -32,6 +32,7 @@ set(THIRD_PARTY_PATH "${CMAKE_BINARY_DIR}/third_party" CACHE STRING
 ################################ Configurations #######################################
 option(WITH_TESTING     "Compile VisualDL with unit testing"        ON)
 option(ON_RELEASE       "RELEASE mode" ON)
+option(VS_PYTHON_SUFFIX "suffix of pybind core" ".so")
 
 
 include(external/zlib)      # download, build, install zlib
